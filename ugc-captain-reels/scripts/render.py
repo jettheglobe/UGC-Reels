@@ -24,6 +24,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from captions import build_ass, remap_words, load_words  # noqa: E402
 
 W, H, FPS = 1080, 1920, 30
+IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def is_image(path):
+    return os.path.splitext(path)[1].lower() in IMAGE_EXT
+
+
+def input_args(path, start, dur):
+    """Seek into a video, or loop a still image (screenshots, reviews) for `dur`."""
+    if is_image(path):
+        return ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.3f}", "-i", path]
+    return ["-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", path]
 
 
 def run(cmd):
@@ -43,9 +55,14 @@ def has_audio(path):
     return bool(out)
 
 
-def frame_filter(zoom=1.0, mirror=False, label_in="0:v", label_out="v"):
+def frame_filter(zoom=1.0, mirror=False, label_in="0:v", label_out="v", fit="cover"):
     """Scale to cover 1080x1920, punch in by `zoom`, center-crop, fix fps/sar."""
     zw, zh = int(round(W * zoom / 2) * 2), int(round(H * zoom / 2) * 2)
+    if fit == "contain":  # whole image visible on a blurred fill (screenshots, reviews)
+        return (f"[{label_in}]split=2[bg][fg];"
+                f"[bg]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=30:3[bgb];"
+                f"[fg]scale={int(W * 0.9)}:{int(H * 0.8)}:force_original_aspect_ratio=decrease[fgs];"
+                f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2,setsar=1,fps={FPS},format=yuv420p[{label_out}]")
     f = (f"[{label_in}]scale={zw}:{zh}:force_original_aspect_ratio=increase,"
          f"crop={W}:{H},setsar=1,fps={FPS}")
     if mirror:
@@ -60,17 +77,19 @@ def render_segment(seg, idx, base, workdir):
     if dur <= 0:
         raise SystemExit(f"segment {idx}: out must be greater than in")
     out = os.path.join(workdir, f"seg_{idx:03d}.mp4")
-    cmd = ["ffmpeg", "-y", "-v", "error", "-ss", f"{t_in:.3f}", "-t", f"{dur:.3f}", "-i", src]
+    cmd = ["ffmpeg", "-y", "-v", "error"] + input_args(src, t_in, dur)
     cover = seg.get("cover")
-    use_audio = seg.get("audio", True) and has_audio(src)
+    use_audio = seg.get("audio", True) and not is_image(src) and has_audio(src)
     if cover:
         csrc = os.path.join(base, cover["source"])
-        cmd += ["-ss", f"{float(cover.get('in', 0)):.3f}", "-t", f"{dur:.3f}", "-i", csrc]
+        cmd += input_args(csrc, float(cover.get("in", 0)), dur)
     cmd += ["-f", "lavfi", "-t", f"{dur:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
     silent_idx = 2 if cover else 1
     vin = "1:v" if cover else "0:v"
-    zoom = float((cover or {}).get("zoom", 1.0) if cover else seg.get("zoom", 1.0))
-    filters = [frame_filter(zoom, seg.get("mirror", False), vin, "v")]
+    vsrc = cover or seg
+    zoom = float(vsrc.get("zoom", 1.0))
+    fit = vsrc.get("fit", "contain" if is_image(os.path.join(base, vsrc["source"])) else "cover")
+    filters = [frame_filter(zoom, seg.get("mirror", False), vin, "v", fit)]
     if use_audio:
         filters.append(f"[0:a]aresample=48000,aformat=channel_layouts=stereo,"
                        f"volume={seg.get('volume', 1.0)},"

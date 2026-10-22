@@ -45,7 +45,10 @@ Played in order, back to back. Each one is cut from `source` between `in` and `o
 | `audio` | true | false = silence (use for pure B-roll segments with no useful sound) |
 | `volume` | 1.0 | linear gain for this segment's audio |
 | `captions` | true | false = no captions for this segment |
+| `fit` | `cover` (video) / `contain` (image) | `contain` shows the whole frame over a blurred fill. Use it for screenshots and reviews; also works inside `cover` |
 | `mirror` | false | horizontal flip (only for selfie footage that came out mirrored; never on footage with readable text) |
+
+**Still images** (.jpg/.png/.webp: review screenshots, comments, before/after photos) work as a segment `source` or a `cover` source. They're held for the segment's length (`in` 0, `out` = seconds to show), have no audio, and default to `fit: contain`. For a reaction-style callout, use the image as a `cover` over the A-roll line that talks about it.
 
 ## Captions
 

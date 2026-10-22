@@ -11,7 +11,8 @@ The bar: a brand should be able to post the output as-is. That means a hook that
 
 ## Files in this skill
 
-- `references/creators/nate-flake.md` — default style profile. Read it every time unless the user names another creator.
+- `references/ugc-playbook.md`: what high-performing UGC does, a library of 8 proven formats with beat timings, a hook bank and CTA patterns. Read it every time, because choosing the right format for the footage matters more than anything else.
+- `references/creators/nate-flake.md`: the default style profile (look, pacing, voice). Read it every time unless the user names another creator.
 - `references/creators/_template.md` — template for adding a new creator.
 - `references/ugc-captain.md` — the user's own on-camera persona and brand voice. Read it every time; the reference creator shapes *structure and pacing*, the persona shapes *voice*.
 - `references/edit-plan.md` — the edit plan JSON format the renderer reads. Read before writing a plan.
@@ -24,7 +25,7 @@ Requirements: `ffmpeg`/`ffprobe` and Python 3. For transcription, `pip install f
 
 ### 1. Get the brief
 
-You need: the product and its one main benefit, the offer/CTA (link in bio, TikTok Shop, code), platform (TikTok, Reels, or both), target length (30–60s; default ~35s for ads, because shorter keeps retention up), the reference creator (default Nate Flake), and where the footage is. Pull what you can from the conversation and the clips themselves; only ask for what's truly missing. If the brand sent a brief with must-say lines or banned claims, those override style choices.
+You need: the product and its one main benefit, the offer/CTA (link in bio, TikTok Shop, code), platform (TikTok, Reels, or both), target length (30–60s; default ~30s for paid ads (21–35s is the most-cited conversion sweet spot), 35–60s for organic story or podcast-style posts), the reference creator (default Nate Flake), and where the footage is. Pull what you can from the conversation and the clips themselves; only ask for what's truly missing. If the brand sent a brief with must-say lines or banned claims, those override style choices.
 
 If there is no footage yet, don't stop — write a shoot plan in the reference creator's style (hook options, script with the persona's voice, A-roll setups and a B-roll shot list) so the user can film, then come back to assemble.
 
@@ -50,7 +51,7 @@ Writes `work/words.json` (word timings, used for captions) and `work/transcript.
 
 ### 4. Write the paper edit
 
-Before any JSON, decide the story beat by beat using the reference creator's structure. For each beat pick the best take:
+Before writing any JSON, pick the format from `ugc-playbook.md` that fits the footage and the brief. Testimonial is the default for product ads. Use listicle when the footage has distinct points, unboxing when there's packaging footage, reaction when there's a screenshot to respond to, and podcast-style when the setup has a mic. Then lay out the story beat by beat in that format's timings, dressed in the reference creator's look and pacing. For each beat, pick the best take:
 
 - **Choose takes on delivery, not just words.** Prefer the take with the fewest restarts and filler, with the line said in one breath. When the same line appears several times, the last complete take is usually the keeper (creators restart until they nail it).
 - **Hook first.** The strongest, most specific line goes at 0:00 even if it was filmed later. No "hey guys", no intro, no logo.
@@ -87,7 +88,7 @@ Give the user:
 1. The final MP4 path (and the `_cover.jpg` if `thumbnail_at` was set).
 2. A short edit summary: length, hook used, takes chosen, anything you dropped and why.
 3. Post copy per platform: TikTok caption (short, 3–5 hashtags, keyword-rich because TikTok search reads it) and Reels caption (a line or two more, 3–5 hashtags). Remind them to add "Paid partnership"/#ad disclosure when it's a paid brand deal.
-4. If useful, 2 alternate hooks they could swap in from the footage for an A/B test — just the in/out times, ready to drop into the plan.
+4. **Hook variants.** For paid ads, render 3 versions that differ only in the opening segment(s) and hook text, e.g. `out/<brand>_hookA.mp4`, `hookB`, `hookC`. Copy `plan.json` to `plan_hookB.json` and swap only the first segments and the hook overlay. Brands test hooks at equal spend and scale the winner, so variants are often worth more than polish. For organic posts, list the alternate hooks with their in/out times instead of rendering them.
 
 Keep `plan.json` — revisions ("make it 30s", "use the other hook", "less music") are just plan edits and a re-render.
 
